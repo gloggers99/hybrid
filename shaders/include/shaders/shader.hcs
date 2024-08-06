@@ -1,0 +1,35 @@
+
+#pragma once
+
+#include <glm/glm.hpp>
+
+#include "../Shader.hpp"
+
+class shader_class : public Shader {
+protected:
+
+public:
+    shader_class() : Shader(R"(
+#version 460
+
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec2 texCoord;
+
+uniform float upward;
+
+void main() {
+    gl_Position = vec4(position.x, position.y + upward, position.z, 1.0);
+}
+)", R"(
+#version 460
+
+out vec4 FragColor;
+
+void main() {
+    FragColor = vec4(1.0);
+})") {}
+    
+	Uniform<float> upward = Uniform<float>("upward", &this->shaderProgram);
+};
+
+[[maybe_unused]] static shader_class shader = shader_class();
