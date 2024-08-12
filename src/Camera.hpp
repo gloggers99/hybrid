@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Uniform.hpp"
+#include "IMatrix.hpp"
 
 #include <glm/glm.hpp>
 
@@ -17,8 +18,10 @@ namespace Hybrid {
         RIGHT
     };
 
-    class Camera {
+    class Camera : public IMatrix {
     private:
+        Renderer &renderer;
+
         glm::vec3 cameraPos;
         glm::vec3 cameraFront;
         glm::vec3 cameraUp;
@@ -32,6 +35,8 @@ namespace Hybrid {
         float lastX;
         float lastY;
 
+        float mouseSensitivity;
+
         glm::mat4 createViewMatrix();
         glm::mat4 createProjectionMatrix();
 
@@ -42,6 +47,11 @@ namespace Hybrid {
 
     public:
         void move(Direction direction, float speed);
+
+        /**
+         * Call to handle the mouse and update the underlying matrix
+         */
+        glm::mat4 update() override;
 
         explicit Camera(Renderer &renderer);
         ~Camera();

@@ -183,7 +183,8 @@ namespace Hybrid {
                 vbo(0),
                 ebo(0),
                 compiled(false),
-                dynamic(false) {
+                dynamic(false),
+                element(false) {
             this->compile();
         }
 
@@ -193,7 +194,8 @@ namespace Hybrid {
                 vbo(0),
                 ebo(0),
                 compiled(false),
-                dynamic(false) {}
+                dynamic(false),
+                element(false) {}
 
         ~VertexStack() {
             this->freeBuffers();

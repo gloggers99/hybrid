@@ -23,7 +23,10 @@ add_library(hybrid STATIC
         src/Model.hpp
         src/Camera.cpp
         src/Camera.hpp
+        src/IMatrix.hpp
 )
+
+set(CMAKE_EXE_LINKER_FLAGS "--static")
 add_dependencies(hybrid EmbedShaders)
 target_include_directories(hybrid PUBLIC include)
 target_link_libraries(hybrid PUBLIC glfw3)

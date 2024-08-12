@@ -6,18 +6,58 @@
 
 namespace Hybrid {
     void Model::fileLoad(FILE *handle) {
-        while (!feof(handle)) {
+        std::vector<glm::vec3> vertices;
+        std::vector<unsigned int> faces;
+        std::vector<std::tuple<glm::vec3>> compiledVertices;
+        std::vector<bool> vertexAdded;
 
+        char line[256]; // Buffer to hold each line of the file
+
+        while (fgets(line, sizeof(line), handle)) {
+            // Remove newline character if present
+            line[strcspn(line, "\n")] = '\0';
+
+            if (line[0] == 'v') {
+                float x, y, z;
+                if (sscanf(line, "v %f %f %f", &x, &y, &z) != 3)
+                    throw ModelFailedToLoad("Invalid vertex format");
+                vertices.emplace_back(x, y, z);
+                vertexAdded.push_back(false); // Keep track of added vertices
+            } else if (line[0] == 'f') {
+                int x, y, z;
+                if (sscanf(line, "f %i %i %i", &x, &y, &z) != 3)
+                    throw ModelFailedToLoad("Invalid face format");
+                // Adjust for 1-based to 0-based index
+                if (x > 0 && x <= vertices.size()) faces.push_back(x - 1);
+                if (y > 0 && y <= vertices.size()) faces.push_back(y - 1);
+                if (z > 0 && z <= vertices.size()) faces.push_back(z - 1);
+            }
         }
+
+        compiledVertices.reserve(faces.size());
+
+        for (unsigned int i : faces) {
+            if (i < vertices.size()) {
+                if (!vertexAdded[i]) {
+                    compiledVertices.emplace_back(vertices[i]);
+                    vertexAdded[i] = true;
+                }
+            } else {
+                throw ModelFailedToLoad("Face index out of bounds");
+            }
+        }
+
+        // Update your vertex stack and set indices
+        this->vertexStack.update(compiledVertices);
+        this->vertexStack.setIndices(faces);
     }
 
     void Model::allocateLoad(FILE *handle, long size) {
-        // Load the entire file into memory
         char *buffer = new char[size];
         fread(buffer, size, 1, handle);
-        buffer[size] = '\0';
+        buffer[size - 1] = '\0';
 
-        std::vector<std::tuple<glm::vec3>> vertices;
+        std::vector<glm::vec3> vertices;
         std::vector<unsigned int> faces;
 
         char *line = std::strtok(buffer, "\n");
@@ -26,23 +66,40 @@ namespace Hybrid {
                 float x, y, z;
                 if (sscanf(line, "v %f %f %f", &x, &y, &z) != 3)
                     throw ModelFailedToLoad("Invalid vertex format");
-                vertices.push_back({{x, y, z}});
+                vertices.emplace_back(x, y, z);
             } else if (line[0] == 'f') {
                 int x, y, z;
                 if (sscanf(line, "f %i %i %i", &x, &y, &z) != 3)
                     throw ModelFailedToLoad("Invalid face format");
-                faces.emplace_back(x);
-                faces.emplace_back(y);
-                faces.emplace_back(z);
+                // Adjust for 1-based to 0-based index
+                if (x > 0 && x <= vertices.size()) faces.push_back(x - 1);
+                if (y > 0 && y <= vertices.size()) faces.push_back(y - 1);
+                if (z > 0 && z <= vertices.size()) faces.push_back(z - 1);
             }
 
             line = std::strtok(nullptr, "\n");
         }
 
-        this->vertexStack.update(vertices);
+        std::vector<std::tuple<glm::vec3>> compiledVertices;
+        compiledVertices.reserve(faces.size());
+
+        std::vector<bool> vertexAdded(vertices.size(), false);
+
+        for (unsigned int i : faces) {
+            if (i < vertices.size()) {
+                if (!vertexAdded[i]) {
+                    compiledVertices.emplace_back(vertices[i]);
+                    vertexAdded[i] = true;
+                }
+            } else {
+                throw ModelFailedToLoad("Face index out of bounds");
+            }
+        }
+
+        // Update your vertex stack and set indices
+        this->vertexStack.update(compiledVertices);
         this->vertexStack.setIndices(faces);
 
-        // Cleanup all heap allocated memory
         delete[] buffer;
     }
 

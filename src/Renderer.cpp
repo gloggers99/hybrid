@@ -3,6 +3,7 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
+#include <iostream>
 
 namespace Hybrid {
     void Renderer::error_callback(int error, const char *description) {
@@ -24,6 +25,10 @@ namespace Hybrid {
 
             if (glfwWindowShouldClose(this->window))
                 break;
+
+            //std::cout << "deltaTime: " << this->deltaTime << "\n";
+
+            lastTime = currentTime;
         }
     }
 
@@ -33,6 +38,10 @@ namespace Hybrid {
 
     void Renderer::clearColor(Color color) {
         glClearColor(HYBRID_GL_COLOR_CONVERT(color));
+    }
+
+    GLint Renderer::getKey(int key) {
+        return glfwGetKey(this->window, key);
     }
 
     GLFWwindow *Renderer::getWindow() {

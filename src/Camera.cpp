@@ -11,11 +11,14 @@ namespace Hybrid {
     }
 
     glm::mat4 Camera::createProjectionMatrix() {
-        return glm::perspective(glm::radians(this->fov), )
+        int width, height;
+        glfwGetWindowSize(renderer.getWindow(), &width, &height);
+
+        return glm::perspective(glm::radians(this->fov), static_cast<float>(width) / static_cast<float>(height), 0.1f, 1000.0f);
     }
 
     glm::mat4 Camera::createCameraMatrix() {
-
+        return this->createProjectionMatrix() * this->createViewMatrix();
     }
 
     void Camera::move(Direction direction, float speed) {
@@ -37,7 +40,46 @@ namespace Hybrid {
         }
     }
 
+    glm::mat4 Camera::update(){
+        double xpos;
+        double ypos;
+        glfwGetCursorPos(this->renderer.getWindow(), &xpos, &ypos);
+
+        if (firstMouse)
+        {
+            lastX = xpos;
+            lastY = ypos;
+            firstMouse = false;
+        }
+
+        float xoffset = xpos - lastX;
+        float yoffset = lastY - ypos;
+        lastX = xpos;
+        lastY = ypos;
+
+        xoffset *= mouseSensitivity;
+        yoffset *= mouseSensitivity;
+
+        yaw += xoffset;
+        pitch += yoffset;
+
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        glm::vec3 front;
+        front.x = std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch));
+        front.y = std::sin(glm::radians(pitch));
+        front.z = std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch));
+        cameraFront = glm::normalize(front);
+
+        return this->createCameraMatrix();
+    }
+
     Camera::Camera(Renderer &renderer) :
+    renderer(renderer),
+
     cameraPos(glm::vec3(0.0f, 0.0f, 0.0f)),
     cameraFront(glm::vec3(0.0f, 0.0f, -1.0f)),
     cameraUp(glm::vec3(0.0f, 1.0f, 0.0f)),
@@ -46,7 +88,9 @@ namespace Hybrid {
 
     firstMouse(true),
     yaw(-90.0f),
-    pitch(0.0f) {
+    pitch(0.0f),
+
+    mouseSensitivity(0.5f) {
         int width, height;
         glfwGetWindowSize(renderer.getWindow(), &width, &height);
 

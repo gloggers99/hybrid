@@ -15,10 +15,10 @@ public:
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 texCoord;
 
-uniform float upward;
+uniform mat4 camera;
 
 void main() {
-    gl_Position = vec4(position.x, position.y + upward, position.z, 1.0);
+    gl_Position = camera * vec4(position, 1.0);
 }
 )", R"(
 #version 460
@@ -29,7 +29,7 @@ void main() {
     FragColor = vec4(1.0);
 })") {}
     
-	Uniform<float> upward = Uniform<float>("upward", &this->shaderProgram);
+	Uniform<glm::mat4> camera = Uniform<glm::mat4>("camera", &this->shaderProgram);
 };
 
 [[maybe_unused]] static shader_class shader = shader_class();

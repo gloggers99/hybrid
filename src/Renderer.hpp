@@ -39,6 +39,8 @@ namespace Hybrid {
         void clear(GLbitfield mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         void clearColor(Color color);
 
+        GLint getKey(int key);
+
         GLFWwindow *getWindow();
 
         Renderer(int width,
